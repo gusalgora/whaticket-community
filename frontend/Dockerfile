@@ -11,9 +11,18 @@ RUN npm run build
 
 FROM nginx:alpine
 
-ENV PUBLIC_HTML=/usr/share/nginx/html/
+ENV DOCKERIZE_VERSION v0.6.1
+RUN wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-alpine-linux-amd64-$DOCKERIZE_VERSION.tar.gz \
+    && tar -C /usr/local/bin -xzvf dockerize-alpine-linux-amd64-$DOCKERIZE_VERSION.tar.gz \
+    && rm dockerize-alpine-linux-amd64-$DOCKERIZE_VERSION.tar.gz
 
+COPY .docker/nginx /etc/nginx/
+    
+ENV PUBLIC_HTML=/var/www/public/
 COPY --from=build-deps /usr/src/app/build ${PUBLIC_HTML}
+
+COPY .docker/add-env-vars.sh /docker-entrypoint.d/01-add-env-vars.sh
+
 EXPOSE 80
 
-CMD ["nginx", "-g", "daemon off;"]
+RUN chmod +x /docker-entrypoint.d/01-add-env-vars.sh
