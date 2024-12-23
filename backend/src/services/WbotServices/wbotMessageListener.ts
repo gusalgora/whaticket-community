@@ -300,7 +300,7 @@ const handleMessage = async (
 
     const ticket = await FindOrCreateTicketService(
       contact,
-      wbot.id!,
+      wbot,
       unreadMessages,
       groupContact,
       whatsapp.greetingMessage
