@@ -26,7 +26,7 @@ import CreateContactService from "../ContactServices/CreateContactService";
 import GetContactService from "../ContactServices/GetContactService";
 import formatBody from "../../helpers/Mustache";
 
-interface Session extends Client {
+export interface Session extends Client {
   id?: number;
 }
 
@@ -256,16 +256,16 @@ const handleMessage = async (
     let groupContact: Contact | undefined;
 
     if (msg.fromMe) {
+      // messages sent automatically by wbot have a special character in front of it
+      // if so, this message was already been stored in database;
       if (/\u200e/.test(msg.body[0])) return;
 
-      if (
-        !msg.hasMedia &&
-        msg.type !== "location" &&
-        msg.type !== "chat" &&
-        msg.type !== "vcard"
-      ) {
-        return;
-      }
+      // media messages sent from me from cell phone, first comes with "hasMedia = false" and type = "image/ptt/etc"
+      // in this case, return and let this message be handled by "media_uploaded" event, when it will have "hasMedia = true"
+
+      if (!msg.hasMedia && msg.type !== "location" && msg.type !== "chat" && msg.type !== "vcard"
+        //&& msg.type !== "multi_vcard"
+      ) return;
 
       msgContact = await wbot.getContactById(msg.to);
     } else {
@@ -285,24 +285,26 @@ const handleMessage = async (
 
       groupContact = await verifyContact(msgGroupContact);
     }
-
     const whatsapp = await ShowWhatsAppService(wbot.id!);
 
     const unreadMessages = msg.fromMe ? 0 : chat.unreadCount;
 
     const contact = await verifyContact(msgContact);
 
+    if (
+      unreadMessages === 0 &&
+      whatsapp.farewellMessage &&
+      formatBody(whatsapp.farewellMessage, contact) === msg.body
+    )
+      return;
+
     const ticket = await FindOrCreateTicketService(
       contact,
       wbot.id!,
       unreadMessages,
-      groupContact
+      groupContact,
+      whatsapp.greetingMessage
     );
-
-    // Enviar greetingMessage solo si el ticket es nuevo
-    if (ticket.createdAt.getTime() === ticket.updatedAt.getTime() && whatsapp.greetingMessage) {
-      await wbot.sendMessage(contact.number, formatBody(whatsapp.greetingMessage, contact));
-    }
 
     if (msg.hasMedia) {
       await verifyMediaMessage(msg, ticket, contact);
@@ -321,18 +323,98 @@ const handleMessage = async (
     }
 
     if (msg.type === "vcard") {
-      // lógica de manejo de vcard
+      try {
+        const array = msg.body.split("\n");
+        const obj = [];
+        let contact = "";
+        for (let index = 0; index < array.length; index++) {
+          const v = array[index];
+          const values = v.split(":");
+          for (let ind = 0; ind < values.length; ind++) {
+            if (values[ind].indexOf("+") !== -1) {
+              obj.push({ number: values[ind] });
+            }
+            if (values[ind].indexOf("FN") !== -1) {
+              contact = values[ind + 1];
+            }
+          }
+        }
+        for await (const ob of obj) {
+          const cont = await CreateContactService({
+            name: contact,
+            number: ob.number.replace(/\D/g, "")
+          });
+        }
+      } catch (error) {
+        console.log(error);
+      }
     }
 
     /* if (msg.type === "multi_vcard") {
-      // lógica de manejo de multi_vcard
+      try {
+        const array = msg.vCards.toString().split("\n");
+        let name = "";
+        let number = "";
+        const obj = [];
+        const conts = [];
+        for (let index = 0; index < array.length; index++) {
+          const v = array[index];
+          const values = v.split(":");
+          for (let ind = 0; ind < values.length; ind++) {
+            if (values[ind].indexOf("+") !== -1) {
+              number = values[ind];
+            }
+            if (values[ind].indexOf("FN") !== -1) {
+              name = values[ind + 1];
+            }
+            if (name !== "" && number !== "") {
+              obj.push({
+                name,
+                number
+              });
+              name = "";
+              number = "";
+            }
+          }
+        }
+
+        // eslint-disable-next-line no-restricted-syntax
+        for await (const ob of obj) {
+          try {
+            const cont = await CreateContactService({
+              name: ob.name,
+              number: ob.number.replace(/\D/g, "")
+            });
+            conts.push({
+              id: cont.id,
+              name: cont.name,
+              number: cont.number
+            });
+          } catch (error) {
+            if (error.message === "ERR_DUPLICATED_CONTACT") {
+              const cont = await GetContactService({
+                name: ob.name,
+                number: ob.number.replace(/\D/g, ""),
+                email: ""
+              });
+              conts.push({
+                id: cont.id,
+                name: cont.name,
+                number: cont.number
+              });
+            }
+          }
+        }
+        msg.body = JSON.stringify(conts);
+      } catch (error) {
+        console.log(error);
+      }
     } */
   } catch (err) {
     Sentry.captureException(err);
     logger.error(`Error handling whatsapp message: Err: ${err}`);
   }
 };
-
 
 const handleMsgAck = async (msg: WbotMessage, ack: MessageAck) => {
   await new Promise(r => setTimeout(r, 500));
