@@ -64,8 +64,11 @@ const createContact = async (
 
   const createTicket = await FindOrCreateTicketService(
     contact,
-    whatsapp,
-    1
+    whatsapp.id,
+    1,
+    undefined,
+    whatsapp.greetingMessage,
+    whatsapp
   );
 
   const ticket = await ShowTicketService(createTicket.id);

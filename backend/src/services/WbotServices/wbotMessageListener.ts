@@ -300,10 +300,11 @@ const handleMessage = async (
 
     const ticket = await FindOrCreateTicketService(
       contact,
-      wbot,
+      wbot.id!,
       unreadMessages,
       groupContact,
-      whatsapp.greetingMessage
+      whatsapp.greetingMessage,
+      wbot
     );
 
     if (msg.hasMedia) {

@@ -7,10 +7,11 @@ import { Session } from "../WbotServices/wbotMessageListener";
 
 const FindOrCreateTicketService = async (
   contact: Contact,
-  whatsapp: Session,
+  whatsappId: number,
   unreadMessages: number,
   groupContact?: Contact,
-  greetingMessage?: string
+  greetingMessage?: string,
+  whatsapp?: Session,
 ): Promise<Ticket> => {
   let ticket = await Ticket.findOne({
     where: {
@@ -18,7 +19,7 @@ const FindOrCreateTicketService = async (
         [Op.or]: ["open", "pending"]
       },
       contactId: groupContact ? groupContact.id : contact.id,
-      whatsappId: whatsapp.id!
+      whatsappId: whatsappId
     }
   });
 
@@ -30,7 +31,7 @@ const FindOrCreateTicketService = async (
     ticket = await Ticket.findOne({
       where: {
         contactId: groupContact.id,
-        whatsappId: whatsapp.id!
+        whatsappId: whatsappId
       },
       order: [["updatedAt", "DESC"]]
     });
@@ -51,7 +52,7 @@ const FindOrCreateTicketService = async (
           [Op.between]: [+subHours(new Date(), 2), +new Date()]
         },
         contactId: contact.id,
-        whatsappId: whatsapp.id!
+        whatsappId: whatsappId
       },
       order: [["updatedAt", "DESC"]]
     });
@@ -66,15 +67,15 @@ const FindOrCreateTicketService = async (
   }
 
   if (!ticket) {
-    if (greetingMessage) {
-      const sentMessage = await whatsapp.sendMessage(`${contact.number}@c.us`, greetingMessage);
+    if (greetingMessage && whatsapp) {
+      whatsapp.sendMessage(`${contact.number}@c.us`, greetingMessage);
     }
     ticket = await Ticket.create({
       contactId: groupContact ? groupContact.id : contact.id,
       status: "pending",
       isGroup: !!groupContact,
       unreadMessages,
-      whatsappId: whatsapp.id!
+      whatsappId
     });
   }
 
