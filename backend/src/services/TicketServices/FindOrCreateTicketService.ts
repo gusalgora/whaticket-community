@@ -1,9 +1,3 @@
-import { subHours } from "date-fns";
-import { Op } from "sequelize";
-import Contact from "../../models/Contact";
-import Ticket from "../../models/Ticket";
-import ShowTicketService from "./ShowTicketService";
-
 const FindOrCreateTicketService = async (
   contact: Contact,
   whatsappId: number,
@@ -13,7 +7,7 @@ const FindOrCreateTicketService = async (
   let ticket = await Ticket.findOne({
     where: {
       status: {
-        [Op.or]: ["open", "pending"]
+        [Op.or]: ["open", "pending"] // Excluye automáticamente 'closed'
       },
       contactId: groupContact ? groupContact.id : contact.id,
       whatsappId: whatsappId
@@ -28,7 +22,8 @@ const FindOrCreateTicketService = async (
     ticket = await Ticket.findOne({
       where: {
         contactId: groupContact.id,
-        whatsappId: whatsappId
+        whatsappId: whatsappId,
+        status: { [Op.ne]: "closed" } // Excluye explícitamente 'closed'
       },
       order: [["updatedAt", "DESC"]]
     });
@@ -49,7 +44,8 @@ const FindOrCreateTicketService = async (
           [Op.between]: [+subHours(new Date(), 2), +new Date()]
         },
         contactId: contact.id,
-        whatsappId: whatsappId
+        whatsappId: whatsappId,
+        status: { [Op.ne]: "closed" } // Excluye explícitamente 'closed'
       },
       order: [["updatedAt", "DESC"]]
     });
@@ -77,5 +73,3 @@ const FindOrCreateTicketService = async (
 
   return ticket;
 };
-
-export default FindOrCreateTicketService;
