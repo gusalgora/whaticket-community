@@ -3,15 +3,12 @@ import { Op } from "sequelize";
 import Contact from "../../models/Contact";
 import Ticket from "../../models/Ticket";
 import ShowTicketService from "./ShowTicketService";
-import { Session } from "../WbotServices/wbotMessageListener";
 
 const FindOrCreateTicketService = async (
   contact: Contact,
   whatsappId: number,
   unreadMessages: number,
-  groupContact?: Contact,
-  greetingMessage?: string,
-  whatsapp?: Session,
+  groupContact?: Contact
 ): Promise<Ticket> => {
   let ticket = await Ticket.findOne({
     where: {
@@ -56,6 +53,7 @@ const FindOrCreateTicketService = async (
       },
       order: [["updatedAt", "DESC"]]
     });
+
     if (ticket) {
       await ticket.update({
         status: "pending",
