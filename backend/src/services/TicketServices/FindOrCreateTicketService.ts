@@ -46,13 +46,26 @@ const FindOrCreateTicketService = async (
   }
 
   if (!ticket && !groupContact) {
-    ticket = null;
+    ticket = await Ticket.findOne({
+      where: {
+        updatedAt: {
+          [Op.between]: [+subHours(new Date(), 2), +new Date()]
+        },
+        contactId: contact.id,
+        whatsappId: whatsappId
+      },
+      order: [["updatedAt", "DESC"]]
+    });
+    if (ticket) {
+      await ticket.update({
+        status: "pending",
+        userId: null,
+        unreadMessages
+      });
+    }
   }
 
   if (!ticket) {
-    if (greetingMessage && whatsapp) {
-      whatsapp.sendMessage(`${contact.number}@c.us`, greetingMessage);
-    }
     ticket = await Ticket.create({
       contactId: groupContact ? groupContact.id : contact.id,
       status: "pending",
