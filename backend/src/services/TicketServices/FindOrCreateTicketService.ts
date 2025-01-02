@@ -10,6 +10,11 @@ const FindOrCreateTicketService = async (
   unreadMessages: number,
   groupContact?: Contact
 ): Promise<Ticket> => {
+  console.log("FindOrCreateTicketService -> contact", contact);
+  console.log("FindOrCreateTicketService -> whatsappId", whatsappId);
+  console.log("FindOrCreateTicketService -> unreadMessages", unreadMessages);
+  console.log("FindOrCreateTicketService -> groupContact", groupContact);
+
   let ticket = await Ticket.findOne({
     where: {
       status: {
