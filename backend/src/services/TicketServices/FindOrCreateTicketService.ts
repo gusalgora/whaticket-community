@@ -13,12 +13,16 @@ const FindOrCreateTicketService = async (
   let ticket = await Ticket.findOne({
     where: {
       status: {
-        [Op.or]: ["open", "pending"] // Excluye automáticamente 'closed'
+        [Op.or]: ["open", "pending"]
       },
       contactId: groupContact ? groupContact.id : contact.id,
       whatsappId: whatsappId
     }
   });
+
+  if (ticket?.status === "closed") {
+    ticket = null;
+  }
 
   if (ticket) {
     await ticket.update({ unreadMessages });
@@ -28,8 +32,7 @@ const FindOrCreateTicketService = async (
     ticket = await Ticket.findOne({
       where: {
         contactId: groupContact.id,
-        whatsappId: whatsappId,
-        status: { [Op.ne]: "closed" } // Excluye explícitamente 'closed'
+        whatsappId: whatsappId
       },
       order: [["updatedAt", "DESC"]]
     });
@@ -50,8 +53,7 @@ const FindOrCreateTicketService = async (
           [Op.between]: [+subHours(new Date(), 2), +new Date()]
         },
         contactId: contact.id,
-        whatsappId: whatsappId,
-        status: { [Op.ne]: "closed" } // Excluye explícitamente 'closed'
+        whatsappId: whatsappId
       },
       order: [["updatedAt", "DESC"]]
     });
@@ -79,6 +81,5 @@ const FindOrCreateTicketService = async (
 
   return ticket;
 };
-
 
 export default FindOrCreateTicketService;
