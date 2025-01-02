@@ -9,6 +9,7 @@ import UpdateTicketService from "../services/TicketServices/UpdateTicketService"
 import SendWhatsAppMessage from "../services/WbotServices/SendWhatsAppMessage";
 import ShowWhatsAppService from "../services/WhatsappService/ShowWhatsAppService";
 import formatBody from "../helpers/Mustache";
+import { logger } from "../utils/logger";
 
 type IndexQuery = {
   searchParam: string;
@@ -94,7 +95,7 @@ export const update = async (
     ticketId
   });
 
-  console.log("update -> ticket", ticket);
+  logger.info("update -> ticket", ticket);
 
   if (ticket.status === "closed") {
     const whatsapp = await ShowWhatsAppService(ticket.whatsappId);
