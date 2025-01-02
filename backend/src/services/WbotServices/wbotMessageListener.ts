@@ -450,6 +450,7 @@ const handleMsgAck = async (msg: WbotMessage, ack: MessageAck) => {
 
 const wbotMessageListener = (wbot: Session): void => {
   wbot.on("message", async msg => {
+    logger.info(`Message received: ${msg.body}`);
     handleMessage(msg, wbot);
   });
 
