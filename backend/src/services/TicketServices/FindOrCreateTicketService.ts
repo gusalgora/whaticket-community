@@ -1,3 +1,9 @@
+import { subHours } from "date-fns";
+import { Op } from "sequelize";
+import Contact from "../../models/Contact";
+import Ticket from "../../models/Ticket";
+import ShowTicketService from "./ShowTicketService";
+
 const FindOrCreateTicketService = async (
   contact: Contact,
   whatsappId: number,
@@ -73,3 +79,6 @@ const FindOrCreateTicketService = async (
 
   return ticket;
 };
+
+
+export default FindOrCreateTicketService;
