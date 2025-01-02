@@ -26,7 +26,7 @@ import CreateContactService from "../ContactServices/CreateContactService";
 import GetContactService from "../ContactServices/GetContactService";
 import formatBody from "../../helpers/Mustache";
 
-export interface Session extends Client {
+interface Session extends Client {
   id?: number;
 }
 
@@ -302,9 +302,7 @@ const handleMessage = async (
       contact,
       wbot.id!,
       unreadMessages,
-      groupContact,
-      whatsapp.greetingMessage,
-      wbot
+      groupContact
     );
 
     if (msg.hasMedia) {
