@@ -295,8 +295,10 @@ const handleMessage = async (
       unreadMessages === 0 &&
       whatsapp.farewellMessage &&
       formatBody(whatsapp.farewellMessage, contact) === msg.body
-    )
+    ) {
+      console.log("Farewell message received");
       return;
+    }
 
     const ticket = await FindOrCreateTicketService(
       contact,
