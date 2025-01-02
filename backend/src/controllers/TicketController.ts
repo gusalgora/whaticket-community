@@ -94,6 +94,8 @@ export const update = async (
     ticketId
   });
 
+  console.log("update -> ticket", ticket);
+
   if (ticket.status === "closed") {
     const whatsapp = await ShowWhatsAppService(ticket.whatsappId);
 
