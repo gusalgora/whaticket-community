@@ -418,8 +418,6 @@ const handleMessage = async (
 };
 
 const handleMsgAck = async (msg: WbotMessage, ack: MessageAck) => {
-  await new Promise(r => setTimeout(r, 500));
-
   const io = getIO();
 
   try {
@@ -433,9 +431,11 @@ const handleMsgAck = async (msg: WbotMessage, ack: MessageAck) => {
         }
       ]
     });
+
     if (!messageToUpdate) {
       return;
     }
+
     await messageToUpdate.update({ ack });
 
     io.to(messageToUpdate.ticketId.toString()).emit("appMessage", {
@@ -449,7 +449,7 @@ const handleMsgAck = async (msg: WbotMessage, ack: MessageAck) => {
 };
 
 const wbotMessageListener = (wbot: Session): void => {
-  wbot.on("message_create", async msg => {
+  wbot.on("message", async msg => {
     handleMessage(msg, wbot);
   });
 
