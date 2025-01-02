@@ -26,9 +26,9 @@ const FindOrCreateTicketService = async (
       whatsappId: whatsappId
     }
   });
-
-  if (ticket?.status === "closed") {
-    ticket = null;
+  
+  if (contact.number == "573228593894") {
+    console.log("FindOrCreateTicketService -> ticket", ticket);
   }
 
   if (ticket) {
