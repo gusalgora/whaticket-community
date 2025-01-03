@@ -279,6 +279,7 @@ const reducer = (state, action) => {
   }
 
   if (action.type === "ADD_MESSAGE") {
+    console.log(action.payload, "action.payload");
     const newMessage = action.payload;
     const messageIndex = state.findIndex((m) => m.id === newMessage.id);
 
