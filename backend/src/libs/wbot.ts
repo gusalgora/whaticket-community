@@ -15,22 +15,25 @@ const sessions: Session[] = [];
 const syncUnreadMessages = async (wbot: Session) => {
   const chats = await wbot.getChats();
 
-  /* eslint-disable no-restricted-syntax */
-  /* eslint-disable no-await-in-loop */
-  for (const chat of chats) {
-    if (chat.unreadCount > 0 && chat.name !== "WhatsApp") {
+  // Filtrar solo los chats con mensajes no leídos y que no sean de "WhatsApp"
+  const relevantChats = chats.filter((chat: any) => chat.unreadCount > 0 && chat.name !== "WhatsApp");
+
+  // Procesar cada chat en paralelo
+  await Promise.all(
+    relevantChats.map(async (chat: any) => {
       const unreadMessages = await chat.fetchMessages({
         limit: chat.unreadCount
       });
 
-      for (const msg of unreadMessages) {
-        await handleMessage(msg, wbot);
-      }
+      // Procesar los mensajes no leídos en paralelo
+      await Promise.all(unreadMessages.map((msg: any) => handleMessage(msg, wbot)));
 
+      // Marcar el chat como leído
       await chat.sendSeen();
-    }
-  }
+    })
+  );
 };
+
 
 export const initWbot = async (whatsapp: Whatsapp): Promise<Session> => {
   return new Promise((resolve, reject) => {
