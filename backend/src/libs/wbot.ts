@@ -18,7 +18,7 @@ const syncUnreadMessages = async (wbot: Session) => {
   /* eslint-disable no-restricted-syntax */
   /* eslint-disable no-await-in-loop */
   for (const chat of chats) {
-    if (chat.unreadCount > 0) {
+    if (chat.unreadCount > 0 && chat.name !== "WhatsApp") {
       const unreadMessages = await chat.fetchMessages({
         limit: chat.unreadCount
       });
