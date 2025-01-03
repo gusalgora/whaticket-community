@@ -9,6 +9,7 @@ import ShowTicketService from "../services/TicketServices/ShowTicketService";
 import DeleteWhatsAppMessage from "../services/WbotServices/DeleteWhatsAppMessage";
 import SendWhatsAppMedia from "../services/WbotServices/SendWhatsAppMedia";
 import SendWhatsAppMessage from "../services/WbotServices/SendWhatsAppMessage";
+import { logger } from "../utils/logger";
 
 type IndexQuery = {
   pageNumber: string;
@@ -40,7 +41,11 @@ export const store = async (req: Request, res: Response): Promise<Response> => {
   const { body, quotedMsg }: MessageData = req.body;
   const medias = req.files as Express.Multer.File[];
 
+  logger.info(`Received message from ticket ${ticketId}`);
+
   const ticket = await ShowTicketService(ticketId);
+
+  logger.info(`Ticket ${ticketId} found`);
 
   SetTicketMessagesAsRead(ticket);
 

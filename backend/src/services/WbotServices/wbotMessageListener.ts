@@ -449,7 +449,7 @@ const handleMsgAck = async (msg: WbotMessage, ack: MessageAck) => {
 };
 
 const wbotMessageListener = (wbot: Session): void => {
-  wbot.on("message", async msg => {
+  wbot.on("message_create", async msg => {
     logger.info(`Message received: ${msg.body}`);
     handleMessage(msg, wbot);
   });
