@@ -1,6 +1,7 @@
 import { Op, fn, where, col, Filterable, Includeable } from "sequelize";
 import { startOfDay, endOfDay, parseISO } from "date-fns";
 
+import User from "../../models/User";
 import Ticket from "../../models/Ticket";
 import Contact from "../../models/Contact";
 import Message from "../../models/Message";
@@ -39,9 +40,8 @@ const ListTicketsService = async ({
     [Op.or]: [{ userId }, { status: "pending" }],
     queueId: { [Op.or]: [queueIds, null] }
   };
-  let includeCondition: Includeable[];
 
-  includeCondition = [
+  let includeCondition: Includeable[] = [
     {
       model: Contact,
       as: "contact",
@@ -56,6 +56,12 @@ const ListTicketsService = async ({
       model: Whatsapp,
       as: "whatsapp",
       attributes: ["name"]
+    },
+    {
+      model: User,
+      as: "user",
+      attributes: ["name"],
+      required: false
     }
   ];
 
@@ -144,10 +150,18 @@ const ListTicketsService = async ({
     order: [["updatedAt", "DESC"]]
   });
 
+  // Post-procesar el nombre de `whatsapp` para incluir el nombre del usuario
+  const formattedTickets = tickets.map(ticket => {
+    if (ticket.whatsapp && ticket.user) {
+      ticket.whatsapp.name = `${ticket.user.name} - ${ticket.whatsapp.name}`;
+    }
+    return ticket;
+  });
+
   const hasMore = count > offset + tickets.length;
 
   return {
-    tickets,
+    tickets: formattedTickets,
     count,
     hasMore
   };
